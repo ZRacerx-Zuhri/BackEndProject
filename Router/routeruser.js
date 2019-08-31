@@ -13,7 +13,10 @@ var Storage = multer.diskStorage({
     cb(null, dir);
   },
   filename: function(req, file, cb) {
-    cb(null, Date.now() + file.fieldname + path.extname(file.originalname));
+    cb(
+      null,
+      file.fieldname + "-" + Date.now() + path.extname(file.originalname)
+    );
   }
 });
 
@@ -46,9 +49,10 @@ Route.post("/uploadavatar", upload.single("Avatar"), (req, res) => {
   const dsql = `update users set avatar = ? where username=?`;
   const dsql2 = `select * from users where ?`;
   const { username } = req.body;
-
+  if (!req.file) return res.send("Please Upload picture");
   SQL.query(dsql, [req.file.filename, username], (err, result) => {
     if (err) return res.send(err);
+
     SQL.query(dsql2, { username: username }, (err, result2) => {
       if (err) return res.send(err);
       res.send(result2);
@@ -68,13 +72,11 @@ Route.post("/inputuser", (req, res) => {
     alamat,
     nomobile
   } = req.body;
+
   const dsql = `insert into users set ?`;
   const dsql2 = `select * from users`;
 
-  if (!isemail(email)) {
-    return res.send("Email is Not Valid!");
-  }
-  const hash = bcrypt.hashSync(password, 5);
+  const hash = bcrypt.hashSync(password, 2);
 
   SQL.query(
     dsql,
@@ -89,15 +91,10 @@ Route.post("/inputuser", (req, res) => {
       mobilenumber: nomobile
     },
     (err, result) => {
-      if (err) {
-        return res.send(err);
-      }
+      if (err) return res.send(err);
 
       SQL.query(dsql2, (err, result2) => {
-        if (err) {
-          return res.send(err);
-        }
-
+        if (err) return res.send(err);
         res.send(result2);
       });
     }
@@ -118,16 +115,14 @@ Route.get("/getusers", (req, res) => {
 //Read One User
 
 Route.get("/users/:name", (req, res) => {
-  const dsql = `select * from users where username = ?`;
+  const dsql = `select *,date_format(tanggallahir, '%d-%m-%Y') as datelahir from users where username = ?`;
   const Username = req.params.name;
   SQL.query(dsql, [Username], (err, result) => {
     if (err) return res.send(err);
     if (result.length < 1) return res.send("user tidak ada");
-    res.send({ pesan: "data ada", data: result[0] });
+    res.send(result[0]);
   });
 });
-
-//Login User
 
 Route.post("/user/login", (req, res) => {
   const { Username, Password } = req.body;
@@ -136,10 +131,54 @@ Route.post("/user/login", (req, res) => {
   SQL.query(dsql, [Username], (err, result) => {
     if (err) return res.send(err);
     if (result.length < 1)
-      return res.send("USERNAME atau Password tidak ditemukan");
+      return res.send("username atau Password tidak ditemukan");
     if (!bcrypt.compareSync(Password, result[0].password))
-      return res.send("USERNAME atau Password tidak ditemukan");
+      return res.send("username atau Password tidak ditemukan");
     res.send(result[0]);
+  });
+});
+
+//Edit Profile
+
+Route.patch("/user/update/:name", upload.single("Avatar"), (req, res) => {
+  const usernama = req.params.name;
+  const { alamat, fullname, email, Password } = req.body;
+
+  const dsql2 = `select * from users where username = ?`;
+  const dsql = `update users set ? where username = ?`;
+
+  SQL.query(dsql2, [usernama], (err, result) => {
+    if (!bcrypt.compareSync(Password, result[0].password))
+      return res.send("salah");
+    if (!req.file) return res.send("Please Upload picture");
+    SQL.query(
+      dsql,
+      [
+        {
+          fullname: fullname,
+          email: email,
+          avatar: req.file.filename,
+          alamat: alamat
+        },
+        usernama
+      ],
+      (err, result2) => {
+        if (err) throw console.log(err);
+
+        res.send(result);
+      }
+    );
+  });
+});
+
+//Delete Akun
+Route.delete("/user/delete/:id", (req, res) => {
+  const Id = req.params.id;
+  dsql = `delete  from users where id = ?`;
+
+  SQL.query(dsql, Id, (err, result) => {
+    if (err) return res.send(err);
+    res.send(result);
   });
 });
 
