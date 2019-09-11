@@ -113,12 +113,10 @@ var x = [
 
 // var myArray = ["a", "b", "c", "d"];
 // for (var i = 0; i < myArray.length; i++) {
-//   if (myArray[i].includes("a")) {
-//     delete myArray[i];
-//   }
+//   return console.log("r");
 // }
 // console.log(myArray);
 var x = ["a", "b", "c"];
 
-var z = x.map(number => (key = number));
+var z = x.indexOf("b", "c");
 console.log(z);

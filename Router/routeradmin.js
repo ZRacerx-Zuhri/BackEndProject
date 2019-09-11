@@ -17,4 +17,23 @@ routeadmin.post("/loginadmin", (req, res) => {
   });
 });
 
+//ADD bANK
+routeadmin.post("/inputbank", (req, res) => {
+  const dsql = `insert into daftarbank set ?`;
+
+  SQL.query(dsql, req.body, (err, result) => {
+    if (err) return res.send(err);
+    res.send(result);
+  });
+});
+
+//read bank
+routeadmin.get("/getbank", (req, res) => {
+  const dsql = ` select * from daftarbank`;
+  SQL.query(dsql, (err, result) => {
+    if (err) return res.send(err);
+    res.send(result);
+  });
+});
+
 module.exports = routeadmin;

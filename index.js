@@ -5,6 +5,7 @@ const cors = require("cors");
 const routeadmin = require("./Router/routeradmin");
 const RouteP = require("./Router/routerproduct");
 const routecart = require("./Router/routercart");
+const routeorder = require("./Router/routeorder");
 
 app.use(express.json());
 app.use(cors());
@@ -13,7 +14,7 @@ app.use(route);
 app.use(routeadmin);
 app.use(RouteP);
 app.use(routecart);
-
+app.use(routeorder);
 app.get("/", (req, res) => {
   res.send("terhubung");
 });

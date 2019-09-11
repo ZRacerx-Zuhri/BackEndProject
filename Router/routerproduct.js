@@ -183,13 +183,21 @@ RouteP.get("/product/:id", (req, res) => {
 
 RouteP.get("/productjadwal/:id", (req, res) => {
   const ID = req.params.id;
-  const dsql = `select DATE_FORMAT(j.tanggal,'%Y-%m-%d') as date,time_format(j.jam,' %H:%i ') as time ,
-p.productname,p.price,p.lokasi,p.picture,
-j.jam from
+  const dsql = `select DATE_FORMAT(j.tanggal,'%Y-%m-%d') as date,time_format(j.jam,'%H:%i') as time ,
+p.productname,p.price,p.lokasi,p.picture,j.id from
 product p join jadwal j on p.id = j.productID
 where j.booking = false and p.id=?`;
 
   SQL.query(dsql, [ID], (err, result) => {
+    if (err) return res.send(err);
+    res.send(result);
+  });
+});
+
+//category
+RouteP.get("/product-category/:name", (req, res) => {
+  const sql = `select * from product p join kategori k on p.id = k.productID where k.category = "${req.params.name}"`;
+  SQL.query(sql, (err, result) => {
     if (err) return res.send(err);
     res.send(result);
   });
